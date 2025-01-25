@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# Cmake and Vulkan Engine
+
+/.idea
+/cmake-build-debug
+
+/build
+/bin
+/assets/brickadia
