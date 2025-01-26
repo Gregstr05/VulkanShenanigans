@@ -28,4 +28,27 @@ public:
 
 	//run main loop
 	void run();
+
+	VkInstance _instance;// Vulkan library handle
+	VkDebugUtilsMessengerEXT _debug_messenger;// Vulkan debug output handle
+	VkPhysicalDevice _chosenGPU;// GPU chosen as the default device
+	VkDevice _device; // Vulkan device for commands
+	VkSurfaceKHR _surface;// Vulkan window surface
+
+	VkSwapchainKHR _swapChain;
+	VkFormat _swapChainImageFormat;
+
+	std::vector<VkImage> _swapChainImages;
+	std::vector<VkImageView> _swapChainImageViews;
+	VkExtent2D _swapChainExtent;
+
+private:
+	void init_vulkan();
+	void init_swapchain();
+	void init_commands();
+	void init_sync_structures();
+
+	void CreateSwapchain(uint32_t width, uint32_t height);
+	void DestroySwapchain();
+
 };
