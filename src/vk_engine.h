@@ -61,6 +61,14 @@ public:
 	VkPipelineLayout _gradientPipelineLayout;
 #pragma endregion
 
+#pragma region ImmediateSubmit
+	VkFence _immFence;
+	VkCommandBuffer _immCommandBuffer;
+	VkCommandPool _immCommandPool;
+
+	void immediate_submit(std::function<void(VkCommandBuffer cmd)> && function);
+#pragma endregion
+
 	FrameData _frames[FRAME_OVERLAP];
 
 	FrameData& get_current_frame() { return _frames[_frameNumber % FRAME_OVERLAP]; };
@@ -121,9 +129,11 @@ private:
 	void init_pipelines();
 
 	void init_background_pipelines();
+	void init_imgui();
 
 	void CreateSwapchain(uint32_t width, uint32_t height);
 	void DestroySwapchain();
 
 	void DrawBackground(VkCommandBuffer cmd);
+	void DrawImGui(VkCommandBuffer cmd, VkImageView targetImageView);
 };
