@@ -17,9 +17,6 @@ add_subdirectory(src)
 
 find_program(GLSL_VALIDATOR glslangValidator HINTS /usr/bin /usr/local/bin $ENV{VULKAN_SDK}/Bin/ $ENV{VULKAN_SDK}/Bin32/)
 
-
-
-
 file(GLOB_RECURSE GLSL_SOURCE_FILES
     "${PROJECT_SOURCE_DIR}/shaders/*.frag"
     "${PROJECT_SOURCE_DIR}/shaders/*.vert"
@@ -42,3 +39,7 @@ add_custom_target(
     Shaders 
     DEPENDS ${SPIRV_BINARY_FILES}
     )
+
+#find_package(SDL2 REQUIRED)
+#include_directories($ENV{SDL2}/include)
+#target_link_libraries(engine, $ENV{SDL2}/lib)
