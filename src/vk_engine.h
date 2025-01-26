@@ -50,6 +50,10 @@ public:
 
 	VmaAllocator _allocator;
 
+	// Draw resources
+	AllocatedImage _drawImage;
+	VkExtent2D _drawExtent;
+
 	VkQueue _graphicsQueue;
 	uint32_t _graphicsQueueFamily;
 
@@ -98,4 +102,5 @@ private:
 	void CreateSwapchain(uint32_t width, uint32_t height);
 	void DestroySwapchain();
 
+	void DrawBackground(VkCommandBuffer cmd);
 };
