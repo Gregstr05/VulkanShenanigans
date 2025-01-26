@@ -35,7 +35,7 @@ add_library(imgui STATIC)
 
 target_include_directories(imgui PUBLIC imgui)
 
-add_definitions(-DIMGUI_HAS_VIEWPORT)
+#add_definitions(-DIMGUI_HAS_VIEWPORT)
 
 target_sources(imgui PRIVATE
         imgui/imgui.h
