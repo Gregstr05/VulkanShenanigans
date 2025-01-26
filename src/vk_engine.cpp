@@ -431,8 +431,7 @@ void VulkanEngine::init_background_pipelines()
 
     // Load Shader
     VkShaderModule computeShaderDraw;
-    // FIXME: Abstract this path to be filesystem agnostic
-    //    Copying compiled shaders into the output binary folder would be the best way to go about it
+
     if (!vkutil::load_shader_module("shaders/gradient.comp.spv", _device, &computeShaderDraw))
     {
         fmt::println("Error building compute shader");
@@ -500,19 +499,6 @@ void VulkanEngine::DestroySwapchain()
 
 void VulkanEngine::DrawBackground(VkCommandBuffer cmd)
 {
-    // Deprecated image clearing method for testing
-    // FIXME: REMOVE WHEN SHADERS ARE WORKING!
-  /*  // make a clear colour from frame number (flashing colours depending on a frame number)
-    VkClearColorValue clearValue;
-    float flash = std::abs(std::sin(_frameNumber / 120.f ));
-    clearValue = { {.0f, .0f, flash, 1.f}};
-
-    VkImageSubresourceRange clearRange = vkinit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
-
-    // Clear the image with desired colour
-    vkCmdClearColorImage(cmd, _drawImage.image, VK_IMAGE_LAYOUT_GENERAL, &clearValue, 1, &clearRange);
-*/
-
     // Bind the gradient compute pipeline
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, _gradientPipeline);
 
@@ -522,6 +508,5 @@ void VulkanEngine::DrawBackground(VkCommandBuffer cmd)
     // execute the compute pipeline
     // We are using 16x16 workgroup size so we need to divide by it
     vkCmdDispatch(cmd, std::ceil(_drawExtent.width/16), std::ceil(_drawExtent.height/16), 1);
-
 
 }
