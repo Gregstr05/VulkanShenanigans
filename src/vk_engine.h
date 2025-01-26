@@ -5,8 +5,55 @@
 
 #include <vk_types.h>
 
+
+struct DeletionQueue
+{
+	std::deque<std::function<void()>> deletors;
+
+	void push_function(std::function<void()> && function)
+	{
+		deletors.push_back(function);
+	}
+
+	void flush()
+	{
+		// iterate in reverse to first destroy the newly created thing
+		for (auto it = deletors.rbegin(); it != deletors.rend(); it++)
+		{
+			// call the functions
+			(*it)();
+		}
+
+		deletors.clear();
+	}
+};
+
+struct FrameData
+{
+	VkCommandPool _commandPool;
+	VkCommandBuffer _mainCommandBuffer;
+
+	VkSemaphore _swapchainSemaphore, _renderSemaphore;
+	VkFence _renderFence;
+
+	DeletionQueue _deletionQueue;
+};
+
+constexpr unsigned int FRAME_OVERLAP = 2;
+
 class VulkanEngine {
 public:
+
+	FrameData _frames[FRAME_OVERLAP];
+
+	FrameData& get_current_frame() { return _frames[_frameNumber % FRAME_OVERLAP]; };
+
+	VmaAllocator _allocator;
+
+	VkQueue _graphicsQueue;
+	uint32_t _graphicsQueueFamily;
+
+	DeletionQueue _mainDeletionQueue;
 
 	bool _isInitialized{ false };
 	int _frameNumber {0};
