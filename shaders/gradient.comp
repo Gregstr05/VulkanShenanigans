@@ -1,7 +1,10 @@
+// GLSL version
 #version 460
 
+// workgroup size for compute
 layout (local_size_x = 16, local_size_y = 16) in;
 
+// descriptor bindingd for the pipeline
 layout(rgba16f,set = 0, binding = 0) uniform image2D image;
 
 

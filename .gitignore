@@ -39,3 +39,6 @@
 /build
 /bin
 /assets/brickadia
+
+# SpirV compiled binaries
+*.spv

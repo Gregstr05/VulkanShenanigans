@@ -5,7 +5,9 @@
 
 #include <vk_types.h>
 
+#include "vk_descriptors.h"
 
+#pragma region Structs
 struct DeletionQueue
 {
 	std::deque<std::function<void()>> deletors;
@@ -38,11 +40,26 @@ struct FrameData
 
 	DeletionQueue _deletionQueue;
 };
+#pragma endregion
 
 constexpr unsigned int FRAME_OVERLAP = 2;
 
 class VulkanEngine {
+
 public:
+
+#pragma region Shaders
+	DescriptorAllocator globalDescriptorAllocator;
+
+	VkDescriptorSet _drawImageDescriptors;
+	VkDescriptorSetLayout _drawImageDescriptorLayout;
+
+#pragma endregion
+
+#pragma region Pipelines
+	VkPipeline _gradientPipeline;
+	VkPipelineLayout _gradientPipelineLayout;
+#pragma endregion
 
 	FrameData _frames[FRAME_OVERLAP];
 
@@ -80,24 +97,30 @@ public:
 	//run main loop
 	void run();
 
+#pragma region VulkanHandles
 	VkInstance _instance;// Vulkan library handle
 	VkDebugUtilsMessengerEXT _debug_messenger;// Vulkan debug output handle
 	VkPhysicalDevice _chosenGPU;// GPU chosen as the default device
 	VkDevice _device; // Vulkan device for commands
 	VkSurfaceKHR _surface;// Vulkan window surface
-
+#pragma endregion
+#pragma region SwapChainHandles
 	VkSwapchainKHR _swapChain;
 	VkFormat _swapChainImageFormat;
 
 	std::vector<VkImage> _swapChainImages;
 	std::vector<VkImageView> _swapChainImageViews;
 	VkExtent2D _swapChainExtent;
-
+#pragma endregion
 private:
 	void init_vulkan();
 	void init_swapchain();
 	void init_commands();
 	void init_sync_structures();
+	void init_descriptors();
+	void init_pipelines();
+
+	void init_background_pipelines();
 
 	void CreateSwapchain(uint32_t width, uint32_t height);
 	void DestroySwapchain();
