@@ -78,6 +78,9 @@ public:
 #pragma region Pipelines
 	VkPipeline _gradientPipeline;
 	VkPipelineLayout _gradientPipelineLayout;
+
+	VkPipelineLayout _trianglePipelineLayout;
+	VkPipeline _trianglePipeline;
 #pragma endregion
 
 #pragma region ImmediateSubmit
@@ -153,11 +156,14 @@ private:
 	void init_pipelines();
 
 	void init_background_pipelines();
+	void init_triangle_pipeline();
 	void init_imgui();
+
 
 	void CreateSwapchain(uint32_t width, uint32_t height);
 	void DestroySwapchain();
 
 	void DrawBackground(VkCommandBuffer cmd);
+	void DrawGeometry(VkCommandBuffer cmd);
 	void DrawImGui(VkCommandBuffer cmd, VkImageView targetImageView);
 };
