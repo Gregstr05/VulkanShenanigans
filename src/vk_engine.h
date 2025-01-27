@@ -40,6 +40,25 @@ struct FrameData
 
 	DeletionQueue _deletionQueue;
 };
+
+struct ComputePushConstants
+{
+	glm::vec4 data1;
+	glm::vec4 data2;
+	glm::vec4 data3;
+	glm::vec4 data4;
+};
+
+struct ComputeEffect
+{
+	const char* name;
+
+	VkPipeline pipeline;
+	VkPipelineLayout pipelineLayout;
+
+	ComputePushConstants pushConstants;
+};
+
 #pragma endregion
 
 constexpr unsigned int FRAME_OVERLAP = 2;
@@ -120,6 +139,11 @@ public:
 	std::vector<VkImageView> _swapChainImageViews;
 	VkExtent2D _swapChainExtent;
 #pragma endregion
+
+private:
+	std::vector<ComputeEffect> backgroundsEffects;
+	int currentBackgroundEffect{0};
+
 private:
 	void init_vulkan();
 	void init_swapchain();
