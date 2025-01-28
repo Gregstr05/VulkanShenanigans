@@ -63,9 +63,11 @@ jobs:
     #  run: >
      #         "sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list"
     - name: Update package manager source list
+      shell: bash
       run: >
               "sudo apt update"
     - name: Download Vulkan SDK
+      shell: bash
       run: >
               "sudo apt install vulkan-sdk"
 
