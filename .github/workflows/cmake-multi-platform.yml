@@ -56,20 +56,17 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-    #- name: Add Vulkan SDK to the source list
-     # run: >
-      #        "wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc"
-   # - name: Download keys
-    #  run: >
-     #         "sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list"
-    - name: Update package manager source list
+    - name: Fetch Vulkan SDK version spec
       shell: bash
-      run: >
-              "sudo apt update"
-    - name: Download Vulkan SDK
-      shell: bash
-      run: >
-              "sudo apt install vulkan-sdk"
+      run: |
+          curl -o vulkan-sdk-config.json https://vulkan.lunarg.com/sdk/config/1.3.204.0/linux/config.json
+
+    - name: Configure Vulkan SDK using the downloaded spec
+      uses: humbletim/setup-vulkan-sdk@v1.2.0
+      with:
+        vulkan-config-file: vulkan-sdk-config.json
+        vulkan-components: Vulkan-Headers, Vulkan-Loader, SPIRV-Tools
+        vulkan-use-cache: true
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
