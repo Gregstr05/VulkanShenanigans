@@ -56,11 +56,17 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-    - name: Setup Vulkan SDK
-      run: |
+    - name: Add Vulkan SDK to the source list
+      run: >
               "wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc"
+    - name: Download keys
+      run: >
               "sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list"
+    - name: Update package manager source list
+      run: >
               "sudo apt update"
+    - name: Download Vulkan SDK
+      run: >
               "sudo apt install vulkan-sdk"
 
     - name: Configure CMake
