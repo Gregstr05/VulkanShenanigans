@@ -15,6 +15,7 @@
 #include <thread>
 
 #define VMA_IMPLEMENTATION
+#define VMA_DEBUG_LOG
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
@@ -98,6 +99,12 @@ void VulkanEngine::cleanup()
 
         // Make sure the gpu is not busy
         vkDeviceWaitIdle(_device);
+
+        for (auto &mesh : testMeshes)
+        {
+            DestroyBuffer(mesh->meshBuffers.indexBuffer);
+            DestroyBuffer(mesh->meshBuffers.vertexBuffer);
+        }
 
         // Destroy all the buffers and command pools for every frame in swapchain
         for (auto & _frame : _frames)
