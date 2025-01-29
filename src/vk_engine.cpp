@@ -64,7 +64,7 @@ void VulkanEngine::init()
     // We initialize SDL and create a window with it.
     SDL_Init(SDL_INIT_VIDEO);
 
-    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN);
+    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
 
     _window = SDL_CreateWindow(
         "Vulkan Engine",
@@ -148,7 +148,12 @@ void VulkanEngine::draw()
 
     // request image form the swapchain
     uint32_t swapchainImageIndex;
-    VK_CHECK(vkAcquireNextImageKHR(_device, _swapChain, 1000000000, get_current_frame()._swapchainSemaphore, nullptr, &swapchainImageIndex));
+    VkResult result = vkAcquireNextImageKHR(_device, _swapChain, 1000000000, get_current_frame()._swapchainSemaphore, nullptr, &swapchainImageIndex);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+        resize_requested = true;
+        return;
+    }
 
     VkCommandBuffer cmd = get_current_frame()._mainCommandBuffer;
 
@@ -162,7 +167,7 @@ void VulkanEngine::draw()
     VK_CHECK(vkBeginCommandBuffer(cmd, &beginInfo));
 
     // transition our main draw image into general layout so we can write into it
-    // we will overwrite it all so we dont care about what was the older layout
+    // we will overwrite it all so we don't care about what was the older layout
     vkutil::transition_image(cmd, _drawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 
     // Draw background (calling commands elsewhere to not bloat Draw())
@@ -683,7 +688,7 @@ void VulkanEngine::init_mesh_pipeline()
     //no multisampling
     pipelineBuilder.set_multisampling_none();
     //no blending
-    pipelineBuilder.disable_blending();
+    pipelineBuilder.enable_blending_additive();
 
     pipelineBuilder.enable_depthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL);
 
