@@ -6,6 +6,7 @@
 #include <vk_types.h>
 
 #include "vk_descriptors.h"
+#include "vk_loader.h"
 
 #pragma region Structs
 struct DeletionQueue
@@ -81,6 +82,9 @@ public:
 
 	VkPipelineLayout _trianglePipelineLayout;
 	VkPipeline _trianglePipeline;
+
+	VkPipeline _meshPipeline;
+	VkPipelineLayout _meshPipelineLayout;
 #pragma endregion
 
 #pragma region ImmediateSubmit
@@ -90,6 +94,10 @@ public:
 
 	void immediate_submit(std::function<void(VkCommandBuffer cmd)> && function);
 #pragma endregion
+
+	GpuMeshBuffers rectangle;
+
+	std::vector<std::shared_ptr<MeshAsset>> testMeshes;
 
 	FrameData _frames[FRAME_OVERLAP];
 
@@ -154,16 +162,25 @@ private:
 	void init_sync_structures();
 	void init_descriptors();
 	void init_pipelines();
+	void init_default_data();
 
 	void init_background_pipelines();
 	void init_triangle_pipeline();
+	void init_mesh_pipeline();
 	void init_imgui();
 
 
 	void CreateSwapchain(uint32_t width, uint32_t height);
 	void DestroySwapchain();
 
+	AllocatedBuffer CreateBuffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
+	void DestroyBuffer(const AllocatedBuffer &buffer);
+
+
 	void DrawBackground(VkCommandBuffer cmd);
 	void DrawGeometry(VkCommandBuffer cmd);
 	void DrawImGui(VkCommandBuffer cmd, VkImageView targetImageView);
+
+public:
+	GpuMeshBuffers UploadMesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
 };
