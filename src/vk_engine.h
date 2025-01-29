@@ -83,8 +83,8 @@ public:
 	VkPipelineLayout _trianglePipelineLayout;
 	VkPipeline _trianglePipeline;
 
-	VkPipeline _meshPipeline;
 	VkPipelineLayout _meshPipelineLayout;
+	VkPipeline _meshPipeline;
 #pragma endregion
 
 #pragma region ImmediateSubmit

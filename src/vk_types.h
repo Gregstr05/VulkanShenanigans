@@ -43,7 +43,7 @@ struct AllocatedBuffer
 {
     VkBuffer buffer;
     VmaAllocation allocation;
-    VmaAllocationInfo allocationInfo;
+    VmaAllocationInfo info;
 };
 
 // Specific uv positions due to alignment optimisations on the GPU

@@ -34,7 +34,7 @@ public:
     void set_polygon_mode(VkPolygonMode mode);
     void set_cull_mode(VkCullModeFlags mode, VkFrontFace frontFace);
     void set_multisampling_none();
-    void diable_blending();
+    void disable_blending();
     void set_color_attachment_format(VkFormat format);
     void set_depth_format(VkFormat format);
     void disable_depthtest();
