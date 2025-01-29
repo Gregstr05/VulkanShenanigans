@@ -13,7 +13,6 @@
 
 std::optional<std::vector<std::shared_ptr<MeshAsset>>> loadGltfMeshes(VulkanEngine* engine, std::filesystem::path filePath)
 {
-//> openmesh
     std::cout << "Loading GLTF: " << filePath << std::endl;
 
     fastgltf::GltfDataBuffer data;
@@ -32,11 +31,10 @@ std::optional<std::vector<std::shared_ptr<MeshAsset>>> loadGltfMeshes(VulkanEngi
         fmt::print("Failed to load glTF: {} \n", fastgltf::to_underlying(load.error()));
         return {};
     }
-//< openmesh
-//> loadmesh
+
     std::vector<std::shared_ptr<MeshAsset>> meshes;
 
-    // use the same vectors for all meshes so that the memory doesnt reallocate as
+    // use the same vectors for all meshes so that the memory doesn't reallocate as
     // often
     std::vector<uint32_t> indices;
     std::vector<Vertex> vertices;
@@ -45,7 +43,7 @@ std::optional<std::vector<std::shared_ptr<MeshAsset>>> loadGltfMeshes(VulkanEngi
 
         newmesh.name = mesh.name;
 
-        // clear the mesh arrays each mesh, we dont want to merge them by error
+        // clear the mesh arrays each mesh, we don't want to merge them by error
         indices.clear();
         vertices.clear();
 
@@ -130,6 +128,4 @@ std::optional<std::vector<std::shared_ptr<MeshAsset>>> loadGltfMeshes(VulkanEngi
     }
 
     return meshes;
-
-//< loadmesh
 }

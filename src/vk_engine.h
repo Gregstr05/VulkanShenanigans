@@ -107,6 +107,7 @@ public:
 
 	// Draw resources
 	AllocatedImage _drawImage;
+	AllocatedImage _depthImage;
 	VkExtent2D _drawExtent;
 
 	VkQueue _graphicsQueue;
