@@ -80,9 +80,6 @@ public:
 	VkPipeline _gradientPipeline;
 	VkPipelineLayout _gradientPipelineLayout;
 
-	VkPipelineLayout _trianglePipelineLayout;
-	VkPipeline _trianglePipeline;
-
 	VkPipelineLayout _meshPipelineLayout;
 	VkPipeline _meshPipeline;
 #pragma endregion
@@ -94,8 +91,6 @@ public:
 
 	void immediate_submit(std::function<void(VkCommandBuffer cmd)> && function);
 #pragma endregion
-
-	GpuMeshBuffers rectangle;
 
 	std::vector<std::shared_ptr<MeshAsset>> testMeshes;
 
@@ -166,7 +161,6 @@ private:
 	void init_default_data();
 
 	void init_background_pipelines();
-	void init_triangle_pipeline();
 	void init_mesh_pipeline();
 	void init_imgui();
 
