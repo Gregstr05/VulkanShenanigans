@@ -921,7 +921,7 @@ GpuMeshBuffers VulkanEngine::UploadMesh(std::span<uint32_t> indices, std::span<V
     void* data = stagingBuffer.allocation->GetMappedData();
 
     memcpy(data, vertices.data(), indexBufferSize);
-    mempcpy((char*)data + vertexBufferSize, indices.data(), indexBufferSize);
+    memcpy((char*)data + vertexBufferSize, indices.data(), indexBufferSize);
 
     immediate_submit([&] (VkCommandBuffer cmd)
     {

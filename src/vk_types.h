@@ -49,6 +49,7 @@ struct AllocatedBuffer
 // Specific uv positions due to alignment optimisations on the GPU
 struct Vertex
 {
+
     glm::vec3 position;
     float uv_x;
     glm::vec3 normal;
@@ -58,6 +59,7 @@ struct Vertex
 
 struct GpuMeshBuffers
 {
+
     AllocatedBuffer indexBuffer;
     AllocatedBuffer vertexBuffer;
     VkDeviceAddress vertexBufferAddress;
