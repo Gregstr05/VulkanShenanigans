@@ -68,8 +68,8 @@ void VulkanEngine::init()
 
     _window = SDL_CreateWindow(
         "Vulkan Engine",
-        _windowExtent.width,
-        _windowExtent.height,
+        _windowExtent.width-4,
+        _windowExtent.height-4,
         window_flags);
 
     init_vulkan();
@@ -161,8 +161,8 @@ void VulkanEngine::draw()
 
     VkCommandBufferBeginInfo beginInfo = vkinit::command_buffer_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
-    _drawExtent.width = _drawImage.imageExtent.width;
-    _drawExtent.height = _drawImage.imageExtent.height;
+    _drawExtent.height = std::min(_swapChainExtent.height, _drawImage.imageExtent.height) * renderScale;
+    _drawExtent.width = std::min(_swapChainExtent.width, _drawImage.imageExtent.width) * renderScale;
 #pragma region FillBuffers
     VK_CHECK(vkBeginCommandBuffer(cmd, &beginInfo));
 
@@ -231,7 +231,11 @@ void VulkanEngine::draw()
 
     presentInfo.pImageIndices = &swapchainImageIndex;
 
-    VK_CHECK(vkQueuePresentKHR(_graphicsQueue, &presentInfo));
+    VkResult presentResult = (vkQueuePresentKHR(_graphicsQueue, &presentInfo));
+    if (presentResult == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+        resize_requested = true;
+    }
 
     // increment the frame number
     _frameNumber++;
@@ -279,14 +283,15 @@ void VulkanEngine::run()
             continue;
         }
 
+        if (resize_requested)
+        {
+            ResizeSwapchain();
+        }
+
         // ImGui new frame for all implementations
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
-
-        // DEPRECATED: remove Demo window
-        // ImGui UI to test
-        //ImGui::ShowDemoWindow();
 
         if (ImGui::Begin("background"))
         {
@@ -296,10 +301,20 @@ void VulkanEngine::run()
 
             ImGui::SliderInt("Effects Index", &currentBackgroundEffect, 0, backgroundsEffects.size() - 1);
 
-            ImGui::InputFloat4("data1", (float*)& selected.pushConstants.data1);
-            ImGui::InputFloat4("data2", (float*)& selected.pushConstants.data2);
-            ImGui::InputFloat4("data3", (float*)& selected.pushConstants.data3);
-            ImGui::InputFloat4("data4", (float*)& selected.pushConstants.data4);
+            ImGui::DragFloat4("data1", (float*)& selected.pushConstants.data1, 0.01f, 0, 1);
+            ImGui::DragFloat4("data2", (float*)& selected.pushConstants.data2, 0.01f, 0, 1);
+            ImGui::DragFloat4("data3", (float*)& selected.pushConstants.data3, 0.01f, 0, 1);
+            ImGui::DragFloat4("data4", (float*)& selected.pushConstants.data4, 0.01f, 0, 1);
+        }
+        ImGui::End();
+
+        if(ImGui::Begin("View"))
+        {
+            ImGui::Text("Matrix Transform");
+            ImGui::SliderAngle("Rotation", &rotation);
+
+            ImGui::Text("Render Scale");
+            ImGui::SliderFloat("Render Scale", &renderScale, 0.3f, 1.0f);
         }
         ImGui::End();
 
@@ -386,10 +401,10 @@ void VulkanEngine::init_swapchain()
 {
     CreateSwapchain(_windowExtent.width, _windowExtent.height);
 
-    // Create "draw image" with the same extent as the window
+    // Create "draw image" with the ~same extent as the window~ extent of the monitor, so it can be better scaled up
     VkExtent3D drawImageExtent = {
-        _windowExtent.width,
-        _windowExtent.height,
+        2560,
+        1440,
         1
     };
 
@@ -688,7 +703,8 @@ void VulkanEngine::init_mesh_pipeline()
     //no multisampling
     pipelineBuilder.set_multisampling_none();
     //no blending
-    pipelineBuilder.enable_blending_additive();
+    //pipelineBuilder.enable_blending_additive();
+    pipelineBuilder.disable_blending();
 
     pipelineBuilder.enable_depthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL);
 
@@ -792,6 +808,22 @@ void VulkanEngine::CreateSwapchain(uint32_t width, uint32_t height)
     _swapChainImages = vkbSwapchain.get_images().value();
     _swapChainImageViews = vkbSwapchain.get_image_views().value();
 
+}
+
+void VulkanEngine::ResizeSwapchain()
+{
+    vkDeviceWaitIdle(_device);
+
+    DestroySwapchain();
+
+    int w, h;
+    SDL_GetWindowSize(_window, &w, &h);
+    _windowExtent.width = w;
+    _windowExtent.height = h;
+
+    CreateSwapchain(_windowExtent.width, _windowExtent.height);
+
+    resize_requested = false;
 }
 
 void VulkanEngine::DestroySwapchain()
@@ -933,6 +965,8 @@ void VulkanEngine::DrawGeometry(VkCommandBuffer cmd)
     // Invert the Y axis to not flip GLTF files vertically
     projection[1][1] *= -1;
     glm::mat4 worldMatrix = glm::translate(projection, glm::vec3{0, 0, -5});
+
+    worldMatrix = glm::rotate(worldMatrix, rotation, glm::vec3{0, 1, 0});
 
     GpuDrawPushConstants push_constants;
     push_constants.worldMatrix = worldMatrix;

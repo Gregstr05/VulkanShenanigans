@@ -114,6 +114,7 @@ public:
 	int _frameNumber {0};
 	bool stop_rendering{ false };
 	bool resize_requested{ false };
+	float renderScale{ 1.0f };
 	VkExtent2D _windowExtent{ 1700 , 900 };
 
 	struct SDL_Window* _window{ nullptr };
@@ -152,6 +153,8 @@ private:
 	std::vector<ComputeEffect> backgroundsEffects;
 	int currentBackgroundEffect{0};
 
+	float rotation{0.f};
+
 private:
 	void init_vulkan();
 	void init_swapchain();
@@ -167,6 +170,7 @@ private:
 
 
 	void CreateSwapchain(uint32_t width, uint32_t height);
+	void ResizeSwapchain();
 	void DestroySwapchain();
 
 	AllocatedBuffer CreateBuffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
