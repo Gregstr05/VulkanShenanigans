@@ -312,6 +312,7 @@ void VulkanEngine::run()
         {
             ImGui::Text("Matrix Transform");
             ImGui::SliderAngle("Rotation", &rotation);
+            ImGui::SliderFloat("View Scale", &viewScale, .1f, 5.0f);
 
             ImGui::Text("Render Scale");
             ImGui::SliderFloat("Render Scale", &renderScale, 0.3f, 1.0f);
@@ -964,7 +965,7 @@ void VulkanEngine::DrawGeometry(VkCommandBuffer cmd)
     glm::mat4 projection = glm::perspective(glm::radians(70.f), (float) _drawExtent.width / (float) _drawExtent.height, 1000.f, .1f);
     // Invert the Y axis to not flip GLTF files vertically
     projection[1][1] *= -1;
-    glm::mat4 worldMatrix = glm::translate(projection, glm::vec3{0, 0, -5});
+    glm::mat4 worldMatrix = glm::translate(projection, glm::vec3{0, 0, -5*viewScale});
 
     worldMatrix = glm::rotate(worldMatrix, rotation, glm::vec3{0, 1, 0});
 

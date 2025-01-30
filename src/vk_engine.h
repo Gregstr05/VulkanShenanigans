@@ -154,6 +154,7 @@ private:
 	int currentBackgroundEffect{0};
 
 	float rotation{0.f};
+	float viewScale{1.f};
 
 private:
 	void init_vulkan();
