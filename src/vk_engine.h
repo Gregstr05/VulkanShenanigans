@@ -40,6 +40,7 @@ struct FrameData
 	VkFence _renderFence;
 
 	DeletionQueue _deletionQueue;
+	DescriptorAllocatorGrowable _frameDescriptors;
 };
 
 struct ComputePushConstants
@@ -60,6 +61,16 @@ struct ComputeEffect
 	ComputePushConstants pushConstants;
 };
 
+struct GpuSceneData
+{
+	glm::mat4 view;
+	glm::mat4 projection;
+	glm::mat4 viewProjection;
+	glm::vec4 ambientColor;
+	glm::vec4 sunlightDirection; // W for sun power (not in Watts)
+	glm::vec4 sunlightColor;
+};
+
 #pragma endregion
 
 constexpr unsigned int FRAME_OVERLAP = 2;
@@ -73,6 +84,9 @@ public:
 
 	VkDescriptorSet _drawImageDescriptors;
 	VkDescriptorSetLayout _drawImageDescriptorLayout;
+
+	GpuSceneData sceneData;
+	VkDescriptorSetLayout _gpuSceneDataDescriptorLayout;
 
 #pragma endregion
 
