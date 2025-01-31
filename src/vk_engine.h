@@ -84,6 +84,8 @@ public:
 
 	VkDescriptorSet _drawImageDescriptors;
 	VkDescriptorSetLayout _drawImageDescriptorLayout;
+	
+	VkDescriptorSetLayout _singleImageDescriptorLayout;
 
 	GpuSceneData sceneData;
 	VkDescriptorSetLayout _gpuSceneDataDescriptorLayout;
@@ -106,7 +108,18 @@ public:
 	void immediate_submit(std::function<void(VkCommandBuffer cmd)> && function);
 #pragma endregion
 
+#pragma region TestData
 	std::vector<std::shared_ptr<MeshAsset>> testMeshes;
+
+	AllocatedImage _whiteImage;
+	AllocatedImage _blackImage;
+	AllocatedImage _greyImage;
+	AllocatedImage _errorCheckerboardImage;
+
+	VkSampler _defaultSamplerLinear;
+	VkSampler _defaultSamplerNearest;
+
+#pragma endregion
 
 	FrameData _frames[FRAME_OVERLAP];
 
@@ -191,6 +204,9 @@ private:
 	AllocatedBuffer CreateBuffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
 	void DestroyBuffer(const AllocatedBuffer &buffer);
 
+	AllocatedImage CreateImage(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
+	AllocatedImage CreateImage(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
+	void DestroyImage(const AllocatedImage &img);
 
 	void DrawBackground(VkCommandBuffer cmd);
 	void DrawGeometry(VkCommandBuffer cmd);
