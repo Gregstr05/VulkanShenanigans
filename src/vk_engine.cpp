@@ -98,8 +98,20 @@ void GltfMetallic_Roughness::build_pipelines(VulkanEngine* engine)
 
 }
 
+void GltfMetallic_Roughness::clear_resources(VkDevice device)
+{
+    vkDestroyDescriptorSetLayout(device, materialLayout, nullptr);
+    vkDestroyPipelineLayout(device, transparentPipeline.layout, nullptr);
+
+    vkDestroyPipelineLayout(device, transparentPipeline.layout, nullptr);
+    vkDestroyPipeline(device, transparentPipeline.pipeline, nullptr);
+
+    vkDestroyPipelineLayout(device, opaquePipeline.layout, nullptr);
+    vkDestroyPipeline(device, opaquePipeline.pipeline, nullptr);
+}
+
 MaterialInstance GltfMetallic_Roughness::write_material(VkDevice device, MaterialPass pass,
-    const MaterialResources& resources, DescriptorAllocatorGrowable& descriptorAllocator)
+                                                        const MaterialResources& resources, DescriptorAllocatorGrowable& descriptorAllocator)
 {
     MaterialInstance matData;
     matData.passType = pass;
@@ -219,12 +231,6 @@ void VulkanEngine::cleanup()
         // Make sure the gpu is not busy
         vkDeviceWaitIdle(_device);
 
-        for (auto &mesh : testMeshes)
-        {
-            DestroyBuffer(mesh->meshBuffers.indexBuffer);
-            DestroyBuffer(mesh->meshBuffers.vertexBuffer);
-        }
-
         // Destroy all the buffers and command pools for every frame in swapchain
         for (auto & _frame : _frames)
         {
@@ -237,6 +243,14 @@ void VulkanEngine::cleanup()
 
             _frame._deletionQueue.flush();
         }
+
+        for (auto &mesh : testMeshes)
+        {
+            DestroyBuffer(mesh->meshBuffers.indexBuffer);
+            DestroyBuffer(mesh->meshBuffers.vertexBuffer);
+        }
+
+        metalRoughMaterial.clear_resources(_device);
 
         // flush the main deletion queue when destroying engine
         _mainDeletionQueue.flush();
@@ -1036,13 +1050,24 @@ void VulkanEngine::UpdateScene()
 
     loadedNodes["Suzanne"]->Draw(glm::mat4{1.f}, mainDrawContext);
 
-    sceneData.view = glm::translate(glm::mat4{1.f},glm::vec3{ 0,0,-5 });
+    for (int i = -3; i<3;i++)
+    {
+        glm::mat4 scale = glm::scale(glm::mat4(1.f), glm::vec3(.2f));
+        glm::mat4 translation = glm::translate(glm::mat4(1.f), glm::vec3(i, 1, 0));
+
+        loadedNodes["Cube"]->Draw(translation*scale, mainDrawContext);
+    }
+
+    sceneData.view = glm::translate(glm::mat4{1.f}, glm::vec3{0, 0, -5*viewScale});
     // camera projection
 
     // invert the Y direction on projection matrix so that we are more similar
     // to opengl and gltf axis
     sceneData.projection = glm::perspective(glm::radians(70.f), (float)_windowExtent.width / (float)_windowExtent.height, 10000.f, 0.1f);
     sceneData.projection[1][1] *= -1;
+
+    sceneData.view = glm::rotate(sceneData.view, rotation, glm::vec3{0, 1, 0});
+
     sceneData.viewProjection = sceneData.projection * sceneData.view;
 
     // Default light params
