@@ -9,7 +9,10 @@ bool vkutil::load_shader_module(const char* filePath, VkDevice device, VkShaderM
     std::ifstream file(filePath, std::ios::ate | std::ios::binary);
 
     if (!file.is_open())
+    {
+        fmt::print("Failed to open file `{}`\n", filePath);
         return false;
+    }
 
     // calculate the size (in bytes) of the file by looking at the cursor position
     size_t fileSize = (size_t)file.tellg();
@@ -39,6 +42,7 @@ bool vkutil::load_shader_module(const char* filePath, VkDevice device, VkShaderM
     VkShaderModule shaderModule;
     if (vkCreateShaderModule(device, &shaderModuleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS)
     {
+        fmt::println("Failed to create shader module!");
         return false;
     }
     *outShaderModule = shaderModule;

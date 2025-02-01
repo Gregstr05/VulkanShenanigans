@@ -16,6 +16,7 @@
 
 #define VMA_IMPLEMENTATION
 #define VMA_DEBUG_LOG
+#include <fastgltf/types.hpp>
 #include <glm/detail/func_packing.inl>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -31,13 +32,13 @@ VulkanEngine* loadedEngine = nullptr;
 void GltfMetallic_Roughness::build_pipelines(VulkanEngine* engine)
 {
     VkShaderModule meshFragShader;
-    if (vkutil::load_shader_module("shaders/mesh.frag.spv", engine->_device, &meshFragShader))
+    if (!vkutil::load_shader_module("shaders/mesh.frag.spv", engine->_device, &meshFragShader))
     {
         fmt::println("Failed to load mesh frag shader");
     }
 
     VkShaderModule meshVertShader;
-    if (vkutil::load_shader_module("shaders/mesh.vert.spv", engine->_device, &meshVertShader))
+    if (!vkutil::load_shader_module("shaders/mesh.vert.spv", engine->_device, &meshVertShader))
     {
         fmt::println("Failed to load mesh vertex shader");
     }
@@ -122,6 +123,27 @@ MaterialInstance GltfMetallic_Roughness::write_material(VkDevice device, Materia
 
     return matData;
 
+}
+
+void MeshNode::Draw(const glm::mat4& topMatrix, DrawContext& ctx)
+{
+    glm::mat4 nodeMatrix = topMatrix * worldTransform;
+
+    for(auto& surface : mesh->surfaces)
+    {
+        RenderObject def;
+        def.indexCount = surface.count;
+        def.firstIndex = surface.startIndex;
+        def.indexBuffer = mesh->meshBuffers.indexBuffer.buffer;
+        def.material = &surface.material->material;
+
+        def.transform = nodeMatrix;
+        def.vertexBufferAddress = mesh->meshBuffers.vertexBufferAddress;
+
+        ctx.opaqueSurfaces.push_back(def);
+    }
+
+    Node::Draw(topMatrix, ctx);
 }
 
 void VulkanEngine::immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function)
@@ -236,6 +258,9 @@ void VulkanEngine::cleanup()
 
 void VulkanEngine::draw()
 {
+    // Update the scene so we know what meshes to draw
+    UpdateScene();
+
     // wait until the gpu has finished rendering the last frame
     VK_CHECK(vkWaitForFences(_device, 1, &get_current_frame()._renderFence, VK_TRUE, 1000000000));
 
@@ -772,6 +797,22 @@ void VulkanEngine::init_default_data()
 
     defaultData = metalRoughMaterial.write_material(_device, MaterialPass::MainColor, materialResources, globalDescriptorAllocator);
 
+    // Assign default material to all test meshes
+    for (auto& mesh : testMeshes)
+    {
+        std::shared_ptr<MeshNode> newNode = std::make_shared<MeshNode>();
+        newNode->mesh = mesh;
+
+        newNode->localTransform = glm::mat4(1.f);
+        newNode->worldTransform = glm::mat4(1.f);
+
+        for (auto& surface : newNode->mesh->surfaces)
+        {
+            surface.material = std::make_shared<GltfMaterial>(defaultData);
+        }
+
+        loadedNodes[mesh->name] = std::move(newNode);
+    }
 }
 
 void VulkanEngine::init_background_pipelines()
@@ -986,6 +1027,28 @@ void VulkanEngine::init_imgui()
        ImGui_ImplVulkan_Shutdown();
         vkDestroyDescriptorPool(_device, imGuiPool, nullptr);
     });
+
+}
+
+void VulkanEngine::UpdateScene()
+{
+    mainDrawContext.opaqueSurfaces.clear();
+
+    loadedNodes["Suzanne"]->Draw(glm::mat4{1.f}, mainDrawContext);
+
+    sceneData.view = glm::translate(glm::mat4{1.f},glm::vec3{ 0,0,-5 });
+    // camera projection
+
+    // invert the Y direction on projection matrix so that we are more similar
+    // to opengl and gltf axis
+    sceneData.projection = glm::perspective(glm::radians(70.f), (float)_windowExtent.width / (float)_windowExtent.height, 10000.f, 0.1f);
+    sceneData.projection[1][1] *= -1;
+    sceneData.viewProjection = sceneData.projection * sceneData.view;
+
+    // Default light params
+    sceneData.ambientColor = glm::vec4(.1f);
+    sceneData.sunlightColor = glm::vec4(1.f);
+    sceneData.sunlightDirection = glm::vec4(0,1,.5,1.f);
 
 }
 
@@ -1273,6 +1336,25 @@ void VulkanEngine::DrawGeometry(VkCommandBuffer cmd)
 
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
+    for (const RenderObject& mesh : mainDrawContext.opaqueSurfaces)
+    {
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mesh.material->pipeline->pipeline);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mesh.material->pipeline->layout, 0, 1, &globalDescriptor, 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mesh.material->pipeline->layout, 1, 1, &mesh.material->materialSet, 0, nullptr);
+
+        vkCmdBindIndexBuffer(cmd, mesh.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+        GpuDrawPushConstants pushConstans = {};
+        pushConstans.vertexBuffer = mesh.vertexBufferAddress;
+        pushConstans.worldMatrix = mesh.transform;
+
+        vkCmdPushConstants(cmd, mesh.material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuDrawPushConstants), &pushConstans);
+
+        vkCmdDrawIndexed(cmd, mesh.indexCount, 1, mesh.firstIndex, 0, 0);
+
+    }
+
+/*
     glm::mat4 projection = glm::perspective(glm::radians(70.f), (float) _drawExtent.width / (float) _drawExtent.height, 1000.f, .1f);
     // Invert the Y axis to not flip GLTF files vertically
     projection[1][1] *= -1;
@@ -1289,7 +1371,7 @@ void VulkanEngine::DrawGeometry(VkCommandBuffer cmd)
     vkCmdBindIndexBuffer(cmd, testMeshes[2]->meshBuffers.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
     vkCmdDrawIndexed(cmd, testMeshes[2]->surfaces[0].count, 1, testMeshes[2]->surfaces[0].startIndex, 0, 0);
-
+*/
     vkCmdEndRendering(cmd);
 }
 

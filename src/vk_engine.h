@@ -116,6 +116,18 @@ struct RenderObject
 	VkDeviceAddress vertexBufferAddress;
 };
 
+struct DrawContext
+{
+	std::vector<RenderObject> opaqueSurfaces;
+};
+
+struct MeshNode : public Node
+{
+	std::shared_ptr<MeshAsset> mesh;
+
+	virtual void Draw(const glm::mat4& topMatrix, DrawContext& ctx) override;
+};
+
 #pragma endregion
 
 constexpr unsigned int FRAME_OVERLAP = 2;
@@ -175,6 +187,7 @@ public:
 
 	VmaAllocator _allocator;
 
+
 	// Draw resources
 	AllocatedImage _drawImage;
 	AllocatedImage _depthImage;
@@ -182,6 +195,9 @@ public:
 
 	VkQueue _graphicsQueue;
 	uint32_t _graphicsQueueFamily;
+
+	DrawContext mainDrawContext;
+	std::unordered_map<std::string, std::shared_ptr<Node>> loadedNodes;
 
 	DeletionQueue _mainDeletionQueue;
 
@@ -244,6 +260,7 @@ private:
 	void init_mesh_pipeline();
 	void init_imgui();
 
+	void UpdateScene();
 
 	void CreateSwapchain(uint32_t width, uint32_t height);
 	void ResizeSwapchain();
