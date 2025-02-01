@@ -71,3 +71,23 @@ struct GpuDrawPushConstants
     VkDeviceAddress vertexBuffer;
 
 };
+
+enum class MaterialPass
+{
+    MainColor,
+    Transparent,
+    Other
+};
+
+struct MaterialPipeline
+{
+    VkPipeline pipeline;
+    VkPipelineLayout layout;
+};
+
+struct MaterialInstance
+{
+    MaterialPipeline* pipeline;
+    VkDescriptorSet materialSet;
+    MaterialPass passType;
+};
